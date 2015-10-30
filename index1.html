@@ -1,0 +1,107 @@
+<html>
+<head>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
+	<title> How Fertility rates affects the ranking of the most populated countries of the world (1960-2050) </title>
+</head>
+<body>
+	<h3 align="center"> How Fertility rates affects the ranking of the most populated countries of the world (1960-2050) </h3>
+	<p style="font-size:100%"> This visualization is the representation of how the fertility rate of the countries affects their ranking based on the population. Here fertility rates and ranking of all the countries who were, who are and who will be in top 10 between 1960-2050 are represented. This also gives us the complete picture about how some countries down the ladder moved up due to very high fertility rates for longer period of time and how some countries moved down the ladder due to low fertility rates. </p>
+<div id="chartContainer">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
+  <script type="text/javascript">
+    var svg = dimple.newSvg("#chartContainer", 960, 500);
+    d3.csv("data/data.csv", function (data) {
+	
+
+     // Get a unique list of dates
+      var countries = dimple.getUniqueValues(data, "Country");
+
+      // Set the bounds for the charts
+      var row = 0,
+          col = 0,
+          top = 15,
+          left = 40,
+          inMarg = 80,
+          width = 120,
+          height = 50,
+          totalWidth = parseFloat(svg.attr("width"));
+
+      // Draw a chart for each Country
+      countries.forEach(function (country) {
+		  
+          // Wrap to the row above
+          if (left + ((col + 1) * (width + inMarg)) > totalWidth) {
+            row += 1;
+            col = 0;
+          }
+          
+          // Filter for the country in the iteration
+          var chartData = dimple.filterData(data, "Country", country);
+          
+		  
+		  // Use d3 to draw a text label for the country
+          svg
+            .append("text")
+                .attr("x", left + (col * (width + inMarg)) + (width / 2))
+                .attr("y", (row * (height + inMarg)) + (height / 2)  - top - 25)
+                .style("font-family", "sans-serif")
+                .style("text-anchor", "middle")
+                .style("font-size", "20px")
+                .style("opacity", 0.5)
+                .text(country);
+                  
+          // Create a chart at the correct point in the trellis
+          var myChart = new dimple.chart(svg, chartData);
+          myChart.setBounds(
+            left + (col * (width + inMarg)),
+            top + (row * (height + inMarg)),
+            width,
+            height);
+          
+          // Add x 
+          var x = myChart.addCategoryAxis("x", "Year");
+		  
+		  // Add two y axis
+          var y1 = myChart.addMeasureAxis("y", "Fertility Rate");
+          var y2 = myChart.addMeasureAxis("y", "Rank");
+		  y1.ticks = 5;
+		  y2.ticks = 5; 
+		  
+          myChart.assignColor("Country", "#111111", "#000000", 0.1);
+		  
+          // Draw the bars  
+          myChart.addSeries("Country", dimple.plot.bar, [x, y2]);
+		  
+		  // Draw the line chart and bubble chart to display the fertility rates
+		  myChart.addSeries([], dimple.plot.bubble);
+		  myChart.addSeries([], dimple.plot.line);
+		  
+		  // Draw the chart
+          myChart.draw();
+
+          // Once drawn we can access the shapes
+          // If this is not in the first column remove the y text
+          if (col > 0) {
+			y1.titleShape.remove();
+          }
+		  
+		  if(col < 2) {
+			y2.titleShape.remove();
+		  }
+		  
+          // If this is not in the last row remove the x text
+          if (row < 4) {
+			 x.titleShape.remove();
+          }
+
+          // Move to the next column
+          col += 1;
+
+      }, this);
+    });
+		</script>
+	</div>
+</body>
+</html>
